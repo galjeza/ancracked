@@ -10,10 +10,13 @@ import UserInfoHeader from './components/userinfoheader.js';
 import MainMenu from './components/mainmenu.js';
 import LoadingSpinner from './components/loader.js';
 import AdSelectionScreen from './screens/AdSelectionScreen/AdSelectionScreen.js';
+import Gradient from 'ink-gradient';
+import BigText from 'ink-big-text';
 
 const Screen = {
 	MAIN_MENU: 'mainMenu',
 	CHANGING_EMAIL: 'adSelection',
+	CUSTOMER_SUPPORT: 'customerSupport',
 };
 
 export default function App({initialConfig}) {
@@ -90,7 +93,7 @@ export default function App({initialConfig}) {
 				break;
 
 			case 'Pomoč':
-				// Handle the 'Pomoč' option
+				setCurrentScreen(Screen.CUSTOMER_SUPPORT);
 				break;
 
 			// Add additional cases as needed
@@ -105,19 +108,17 @@ export default function App({initialConfig}) {
 				setHighlightedAdIndex(prevIndex =>
 					Math.min(prevIndex + 1, activeAds.length - 1),
 				);
-			} else if (key.space) {
+			} else if (input === ' ') {
+				console.log('Space pressed');
 				toggleAdSelection(highlightedAdIndex);
+			} else if (input === 'a') {
+				// Checking if the input is 'a'
+				setActiveAds(ads => ads.map(ad => ({...ad, isSelected: true})));
 			} else if (key.return) {
-				setCurrentScreen(Screen.MAIN_MENU);
-			} else if (key.a) {
-				setActiveAds(ads =>
-					ads.map((ad, adIndex) => {
-						return {...ad, isSelected: true};
-					}),
-				);
+				setCurrentScreen(Screen.MAIN_MENU); // Exit the ad selection screen
 			}
-			return; // Prevent further input handling in this screen
-		}
+			return;
+		} // Prevent further input handling in this screen
 
 		if (key.backspace) {
 			setTempEmail(prevState => {
@@ -205,6 +206,15 @@ export default function App({initialConfig}) {
 			);
 			break;
 		// ... other cases
+		case Screen.CUSTOMER_SUPPORT:
+			screenComponent = (
+				<Text>
+					<Text color="yellow">Za pomoč se obrnite na </Text>
+					<Text color="blue">gal.jeza55@gmail.com </Text>
+					<Text color="yellow">ali pokličite </Text>
+					<Text color="blue">031 000 000</Text>
+				</Text>
+			);
 	}
 
 	return (
@@ -215,7 +225,9 @@ export default function App({initialConfig}) {
 			borderColor="cyan"
 		>
 			<Box justifyContent="center" marginBottom={1}>
-				<Text color="greenBright">AvtonetBot</Text>
+				<Gradient name="cristal">
+					<BigText text="avtonetBot 2" />
+				</Gradient>
 			</Box>
 			<UserInfoHeader
 				email={email}

@@ -6,7 +6,7 @@ export default function AdList({ads, onToggleSelection, highlightedAdIndex}) {
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			{ads.map((ad, index) => (
-				<Box key={ad.id}>
+				<Box key={ad.IDoglasa}>
 					<Text
 						onPress={() => onToggleSelection(index)}
 						color={

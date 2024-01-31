@@ -1,20 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const {setupBrowser} = require('../utils/browser-utils');
-const {
-	saveList,
-	generateAdHash,
-	downloadImage,
-	wait,
-} = require('../utils/utils');
-const {
-	AVTONETEDITPREFIX,
-	AVTONET_IMAGES_PREFIX,
-} = require('../utils/constants');
+import fs from 'fs';
+import path from 'path';
+import {setupBrowser} from './utils/browser-utils.js';
+import {saveList, generateAdHash, downloadImage, wait} from './utils/utils.js';
+import {AVTONETEDITPREFIX, AVTONET_IMAGES_PREFIX} from './utils/constants.js';
+import {fileURLToPath} from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const loginToAvtonet = async (browser, email, password) => {
 	const page = await browser.newPage();
 	await page.goto('https://www.avto.net/_2016mojavtonet/');
+	await wait(5);
 	await page.waitForSelector('input[name=enaslov]');
 	await page.type('input[name=enaslov]', email);
 	await page.type('input[name=geslo]', password);
@@ -22,7 +17,8 @@ const loginToAvtonet = async (browser, email, password) => {
 		checks.forEach(check => check.click()),
 	);
 
-	await page.$eval('button[type=submit]', button => button.click());
+	await wait(5);
+	//await page.$eval('button[type=submit]', button => button.click());
 	await page.waitForSelector(
 		"a[href='https://www.avto.net/_2016mojavtonet/logout.asp']",
 	);
@@ -67,12 +63,56 @@ const getCarData = async (browser, adId) => {
 };
 
 const createNewAd = async (browser, carData) => {
-	// TODO: try just sending a post request
+	const newAdPage = await browser.newPage();
+	// go to the new ad page
+	await newAdPage.goto(
+		'https://www.avto.net/_2016mojavtonet/ad_select_rubric_icons.asp?SID=10000',
+	);
+	await newAdPage.waitForSelector('select[name=znamka]');
+	await newAdPage.select(
+		'select[name=znamka]',
+		carData.find(data => data.name === 'znamka').value,
+	);
+	await newAdPage.select(
+		'select[name=model]',
+		carData.find(data => data.name === 'model').value,
+	);
+	await newAdPage.select('select[name=oblika]', '0');
+
+	await newAdPage.select('select[name="mesec"]', '6');
+	try {
+		await newAdPage.select(
+			'select[name="leto"]',
+			carData.find(data => data.name === 'letoReg').value,
+		);
+	} catch (e) {
+		console.log(carData.find(data => data.name === 'letoReg').value);
+		console.log(e);
+		await newAdPage.select('select[name="leto"]', 'NOVO vozilo');
+	}
+
+	const fuelElement = await newAdPage.waitForXPath(
+		`//*[contains(text(),'${
+			carData.find(data => data.name === 'gorivo').value
+		}')]`,
+	);
+	await fuelElement.click();
+
+	await wait(1);
+
+	await page.click('input[name="potrdi"]');
+	await page.waitForSelector('.supurl');
+	await page.click('.supurl');
 };
 
-const renewAd = async (browser, adId) => {
+export const renewAd = async (adId, email, password) => {
+	const browser = await setupBrowser();
+	await loginToAvtonet(browser, email, password);
 	const carData = await getCarData(browser, adId);
-	// create
+
+	await createNewAd(browser, carData);
+	await wait(1000);
+
 	await saveList(carData, `./data/${adId}.json`);
 };
 
@@ -84,8 +124,4 @@ const renewAds = async (adIds, email, password) => {
 		await renewAd(browser, adId, email, password);
 	}
 	await browser.close();
-};
-
-module.exports = {
-	renewAds,
 };
