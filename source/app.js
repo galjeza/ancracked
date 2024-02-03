@@ -224,11 +224,6 @@ export default function App({initialConfig}) {
 			borderStyle="round"
 			borderColor="cyan"
 		>
-			<Box justifyContent="center" marginBottom={1}>
-				<Gradient name="cristal">
-					<BigText text="avtonetBot 2" />
-				</Gradient>
-			</Box>
 			<UserInfoHeader
 				email={email}
 				password={password}

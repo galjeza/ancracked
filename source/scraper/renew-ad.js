@@ -17,8 +17,7 @@ const loginToAvtonet = async (browser, email, password) => {
 		checks.forEach(check => check.click()),
 	);
 
-	await wait(5);
-	//await page.$eval('button[type=submit]', button => button.click());
+	await page.$eval('button[type=submit]', button => button.click());
 	await page.waitForSelector(
 		"a[href='https://www.avto.net/_2016mojavtonet/logout.asp']",
 	);
@@ -31,12 +30,38 @@ const getCarData = async (browser, adId) => {
 	console.log(`Navigating to ${editUrl}`);
 	await page.goto(`${AVTONETEDITPREFIX}${adId}`);
 	await page.waitForSelector('button[name=ADVIEW]');
-	const carData = await page.$$eval('input', inputs =>
+	await wait(3);
+
+	const textAreas = await page.$$eval('textarea', textareas =>
+		textareas.map(textarea => ({
+			name: textarea.name,
+			value: textarea.value,
+		})),
+	);
+
+	const checkboxes = await page.$$eval('input[type=checkbox]', inputs =>
+		inputs.map(input => ({
+			name: input.name,
+			value: input.checked ? '1' : '0',
+		})),
+	);
+
+	const selects = await page.$$eval('select', selects =>
+		selects.map(select => ({
+			name: select.name,
+			value: select.value,
+		})),
+	);
+
+	const inputs = await page.$$eval('input', inputs =>
 		inputs.map(input => ({
 			name: input.name,
 			value: input.value,
 		})),
 	);
+
+	// TODO check if the data is correct
+	const carData = [...textAreas, ...checkboxes, ...selects, ...inputs];
 
 	await page.goto(`${AVTONET_IMAGES_PREFIX}${adId}`);
 	const images = await page.$$eval('img', imgs => imgs.map(img => img.src));
@@ -46,13 +71,14 @@ const getCarData = async (browser, adId) => {
 
 	const hash = generateAdHash(carData);
 	const imagesAlreadyDownloaded = await fs.existsSync(`./data/${hash}`);
+	carData.imagePath = `./data/${hash}`;
 	if (!imagesAlreadyDownloaded) {
 		await fs.mkdirSync(`./data/${hash}`);
 		console.log('Downloading images...');
 		for (const [index, image] of adImages.entries()) {
 			await downloadImage(
 				image,
-				path.join(__dirname, `../data/${hash}/${index}.jpg`),
+				path.join(__dirname, `./data/${hash}/${index}.jpg`),
 			);
 		}
 	} else {
@@ -90,6 +116,16 @@ const createNewAd = async (browser, carData) => {
 		console.log(e);
 		await newAdPage.select('select[name="leto"]', 'NOVO vozilo');
 	}
+	await wait(3);
+
+	// TODO - get the actull value
+	const oblikaValues = await newAdPage.$$eval(
+		'select[name=oblika] option',
+		options => options.map(option => option.value),
+	);
+
+	const secondValue = oblikaValues[1];
+	await newAdPage.select('select[name=oblika]', secondValue);
 
 	const fuelElement = await newAdPage.waitForXPath(
 		`//*[contains(text(),'${
@@ -98,11 +134,89 @@ const createNewAd = async (browser, carData) => {
 	);
 	await fuelElement.click();
 
-	await wait(1);
+	await wait(2);
 
-	await page.click('input[name="potrdi"]');
-	await page.waitForSelector('.supurl');
-	await page.click('.supurl');
+	await newAdPage.click('button[name="potrdi"]');
+	await newAdPage.waitForSelector('.supurl');
+	await newAdPage.click('.supurl');
+	await newAdPage.waitForSelector('input[name=znamka]');
+
+	console.log(carData);
+
+	const checkboxes = await newAdPage.$$('input[type=checkbox]');
+	for (const checkbox of checkboxes) {
+		const name = await checkbox.evaluate(node => node.name);
+		const value = carData.find(data => data.name === name).value;
+		if (value === '1') {
+			await checkbox.click();
+		}
+	}
+
+	const inputs = await newAdPage.$$('input[type=text]');
+	for (const input of inputs) {
+		try {
+			const name = await input.evaluate(node => node.name);
+			const value = carData.find(data => data.name === name).value;
+			if (value) {
+				await input.click({clickCount: 3});
+				await input.type(value);
+			}
+		} catch (e) {
+			continue;
+		}
+	}
+
+	const selects = await newAdPage.$$('select');
+	for (const select of selects) {
+		try {
+			const name = await select.evaluate(node => node.name);
+			const value = carData.find(data => data.name === name).value;
+			if (value) {
+				await select.select(value);
+			}
+		} catch (e) {
+			continue;
+		}
+	}
+
+	const textareas = await newAdPage.$$('textarea');
+	for (const textarea of textareas) {
+		try {
+			const name = await textarea.evaluate(node => node.name);
+			const value = carData.find(data => data.name === name).value;
+			if (value) {
+				await textarea.click({clickCount: 3});
+				await textarea.type(value);
+			}
+		} catch (e) {
+			continue;
+		}
+	}
+
+	await wait(2);
+	await newAdPage.click('button[name="EDITAD"]');
+
+	await uploadImages(browser, carData);
+};
+
+const uploadImages = async (browser, carData) => {
+	await wait(2);
+	const imagesUploadPage = await browser
+		.pages()
+		.then(pages => pages[pages.length - 1]);
+
+	const numImages = carData.find(data => data.name === 'images').value.length;
+	for (let i = 0; i < numImages; i++) {
+		console.log('Uploading image', i + 1, 'of', numImages);
+		await imagesUploadPage.click('input[type=file]');
+		await wait(2);
+		const imageInput = await imagesUploadPage.$('input[type=file]');
+		await imageInput.uploadFile(
+			path.join(__dirname, carData.imagePath, `${i}.jpg`),
+		);
+		await wait(1);
+	}
+	await wait(100000);
 };
 
 export const renewAd = async (adId, email, password) => {
@@ -111,7 +225,6 @@ export const renewAd = async (adId, email, password) => {
 	const carData = await getCarData(browser, adId);
 
 	await createNewAd(browser, carData);
-	await wait(1000);
 
 	await saveList(carData, `./data/${adId}.json`);
 };
