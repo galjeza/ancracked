@@ -65,3 +65,8 @@ export async function downloadImage(url, outputPath) {
 export async function wait(s) {
 	return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
+
+export async function randomWait(min, max) {
+	const randomTime = Math.random() * (max - min) + min;
+	return wait(randomTime);
+}

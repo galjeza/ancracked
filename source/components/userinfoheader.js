@@ -7,9 +7,9 @@ export default function UserInfoHeader({email, password, credits, pause}) {
 	return (
 		<Box flexDirection="column" borderColor="green" borderStyle="single">
 			<Text>Email: {chalk.blue(email)}</Text>
-			<Text>Password: {chalk.red(password)}</Text>
-			<Text>Credits: {chalk.yellow(credits.toString())}</Text>
-			<Text>Pause: {chalk.magenta(pause.toString() + ' min')}</Text>
+			<Text>Geslo: {chalk.red(password)}</Text>
+			<Text>Krediti: {chalk.yellow(credits.toString())}</Text>
+			<Text>Pavza: {chalk.magenta(pause.toString() + ' min')}</Text>
 		</Box>
 	);
 }

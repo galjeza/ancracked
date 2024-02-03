@@ -1,6 +1,5 @@
 import React from 'react';
-import {Text} from 'ink';
-import {Box} from 'ink';
+import {Text, Box} from 'ink';
 import {useInput} from 'ink';
 import chalk from 'chalk';
 import {updateConfig} from './utils.js';
@@ -10,8 +9,6 @@ import UserInfoHeader from './components/userinfoheader.js';
 import MainMenu from './components/mainmenu.js';
 import LoadingSpinner from './components/loader.js';
 import AdSelectionScreen from './screens/AdSelectionScreen/AdSelectionScreen.js';
-import Gradient from 'ink-gradient';
-import BigText from 'ink-big-text';
 
 const Screen = {
 	MAIN_MENU: 'mainMenu',
@@ -65,6 +62,7 @@ export default function App({initialConfig}) {
 			case 'Zaženi':
 				setIsMainMenu(false);
 				setIsLoading(true);
+				// TODO replace with actual id
 				fetchActiveAds('16364')
 					.then(ads => {
 						setActiveAds(ads);
@@ -218,12 +216,7 @@ export default function App({initialConfig}) {
 	}
 
 	return (
-		<Box
-			flexDirection="column"
-			padding={1}
-			borderStyle="round"
-			borderColor="cyan"
-		>
+		<Box flexDirection="column">
 			<UserInfoHeader
 				email={email}
 				password={password}

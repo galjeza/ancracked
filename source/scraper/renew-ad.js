@@ -1,7 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import {setupBrowser} from './utils/browser-utils.js';
-import {saveList, generateAdHash, downloadImage, wait} from './utils/utils.js';
+import {
+	saveList,
+	generateAdHash,
+	downloadImage,
+	wait,
+	randomWait,
+} from './utils/utils.js';
 import {AVTONETEDITPREFIX, AVTONET_IMAGES_PREFIX} from './utils/constants.js';
 import {fileURLToPath} from 'url';
 
@@ -195,17 +201,19 @@ const createNewAd = async (browser, carData) => {
 
 	await wait(2);
 	await newAdPage.click('button[name="EDITAD"]');
-
-	await uploadImages(browser, carData);
 };
 
 const uploadImages = async (browser, carData) => {
-	await wait(2);
+	// TODO: Handle HD images
+
 	const imagesUploadPage = await browser
 		.pages()
 		.then(pages => pages[pages.length - 1]);
 
+	await imagesUploadPage.waitForSelector('.ButtonAddPhoto');
+	await randomWait(2, 3);
 	const numImages = carData.find(data => data.name === 'images').value.length;
+
 	for (let i = 0; i < numImages; i++) {
 		console.log('Uploading image', i + 1, 'of', numImages);
 		await imagesUploadPage.click('input[type=file]');
@@ -214,27 +222,33 @@ const uploadImages = async (browser, carData) => {
 		await imageInput.uploadFile(
 			path.join(__dirname, carData.imagePath, `${i}.jpg`),
 		);
-		await wait(1);
+		await wait(2);
+		const addPhotoButtons = await imagesUploadPage.$$('.ButtonAddPhoto');
+		await addPhotoButtons[0].click();
+		await wait(2);
+		await randomWait(1, 3);
 	}
-	await wait(100000);
+};
+
+const deleteOldAd = async (browser, adId) => {
+	await page.goto(
+		`https://www.avto.net/_2016mojavtonet/ad_delete.asp?id=${adId}`,
+	);
 };
 
 export const renewAd = async (adId, email, password) => {
 	const browser = await setupBrowser();
 	await loginToAvtonet(browser, email, password);
 	const carData = await getCarData(browser, adId);
-
 	await createNewAd(browser, carData);
+	await uploadImages(browser, carData);
+	await deleteOldAd(browser, adId);
 
-	await saveList(carData, `./data/${adId}.json`);
+	await browser.close();
 };
 
 const renewAds = async (adIds, email, password) => {
-	console.log(`Renewing ${adIds.length} ads`);
-	const browser = await setupBrowser();
-	await loginToAvtonet(browser, email, password);
 	for (const adId of adIds) {
-		await renewAd(browser, adId, email, password);
+		await renewAd(adId, email, password);
 	}
-	await browser.close();
 };
