@@ -10,8 +10,11 @@ export default function AdSelectionScreen({
 }) {
 	return (
 		<Box flexDirection="column">
-			<Text color="yellow">Izberite oglase ki jih želite obnoviti.</Text>
-			<Text color="yellow">Press 'a' to deselect all ads.</Text>
+			<Text color="yellow">
+				Izberite oglase ki jih želite obnoviti, ter ENTER da začnete z
+				obnavljanjem.
+			</Text>
+			<Text color="yellow">Pritisnite "a" da izberete vse avtomobile.</Text>
 			<AdList
 				ads={ads}
 				onToggleSelection={toggleSelection}
