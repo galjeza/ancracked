@@ -30,11 +30,26 @@ export function updateConfig(newConfig) {
 
 export async function fetchUserData(email) {
 	const response = await fetch(
-		`http://localhost:3000/user?email=${encodeURIComponent(email)}`,
+		`https://avtonet-server.onrender.com/user?email=${encodeURIComponent(
+			email,
+		)}`,
 	);
 	if (!response.ok) {
 		throw new Error(`Error fetching user: ${response.statusText}`);
 	}
 	const userData = await response.json();
 	return userData;
+}
+
+export async function decreaseCredit(email) {
+	console.log('Decreasing credit for', email);
+	const response = await fetch(
+		`https://avtonet-server.onrender.com/decrementCredit?email=${encodeURIComponent(
+			email,
+		)}`,
+		{method: 'GET'},
+	);
+	if (!response.ok) {
+		throw new Error(`Error decreasing credit: ${response.statusText}`);
+	}
 }

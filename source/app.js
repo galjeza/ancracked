@@ -19,8 +19,17 @@ const Screen = {
 };
 
 export default function App({initialConfig}) {
-	const {email, credits, password, pause, setEmail, setPassword, setPause} =
-		useUserData(initialConfig);
+	const {
+		email,
+		credits,
+		password,
+		pause,
+		setEmail,
+		setPassword,
+		setPause,
+		brokerId,
+		setCredits,
+	} = useUserData(initialConfig);
 	const [isChangingEmail, setIsChangingEmail] = React.useState(false);
 	const [isChangingPassword, setIsChangingPassword] = React.useState(false);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -55,8 +64,6 @@ export default function App({initialConfig}) {
 		'Pomoč',
 	];
 
-	const zazeniOptions = ['Obnovi vse oglase', 'Obnovi samo izbrane oglase'];
-
 	const handleMainMenuSelect = index => {
 		setSelectedIndex(index); // Update the selected index state
 
@@ -65,7 +72,8 @@ export default function App({initialConfig}) {
 				setIsMainMenu(false);
 				setIsLoading(true);
 				// TODO replace with actual id
-				fetchActiveAds('16364')
+				console.log('Broker id:', brokerId);
+				fetchActiveAds(brokerId)
 					.then(ads => {
 						setActiveAds(ads);
 						setIsLoading(false);
@@ -195,6 +203,7 @@ export default function App({initialConfig}) {
 					email={email}
 					password={password}
 					pause={pause}
+					setCredits={setCredits}
 				/>
 			);
 			break;
@@ -224,7 +233,7 @@ export default function App({initialConfig}) {
 					<Text color="yellow">Za pomoč se obrnite na </Text>
 					<Text color="blue">gal.jeza55@gmail.com </Text>
 					<Text color="yellow">ali pokličite </Text>
-					<Text color="blue">031 000 000</Text>
+					<Text color="blue">031 295 335</Text>
 				</Text>
 			);
 	}

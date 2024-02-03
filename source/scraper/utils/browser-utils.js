@@ -18,7 +18,7 @@ puppeteer.use(blockResourcesPlugin);
 
 export async function setupBrowser() {
 	const browser = await puppeteer.launch({
-		headless: true,
+		headless: false,
 		args: [
 			'--no-sandbox',
 			'--disable-setuid-sandbox',

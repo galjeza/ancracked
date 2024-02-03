@@ -66,7 +66,6 @@ const getCarData = async (browser, adId) => {
 		})),
 	);
 
-	// TODO check if the data is correct
 	const carData = [...textAreas, ...checkboxes, ...selects, ...inputs];
 
 	await page.goto(`${AVTONET_IMAGES_PREFIX}${adId}`);
@@ -124,7 +123,6 @@ const createNewAd = async (browser, carData) => {
 	}
 	await wait(3);
 
-	// TODO - get the actull value
 	const oblikaValues = await newAdPage.$$eval(
 		'select[name=oblika] option',
 		options => options.map(option => option.value),

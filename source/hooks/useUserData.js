@@ -5,17 +5,18 @@ export default function useUserData(initialConfig) {
 	const [email, setEmail] = React.useState(initialConfig.email);
 	const [password, setPassword] = React.useState(initialConfig.password);
 	const [credits, setCredits] = React.useState(25); // Example starting value
+	const [brokerId, setBrokerId] = React.useState(0);
 	const [pause, setPause] = React.useState(initialConfig.pause);
 
 	React.useEffect(() => {
 		fetchUserData(initialConfig.email)
 			.then(userData => {
+				console.log('Fetched user data:', userData);
 				setCredits(userData.credits);
-				// ... handle other user data ...
+				setBrokerId(userData.brokerId);
 			})
 			.catch(error => {
 				console.error('Failed to fetch user data:', error.message);
-				// ... handle error ...
 			});
 	}, [email]); // Empty dependency array to run only on mount
 
@@ -28,5 +29,6 @@ export default function useUserData(initialConfig) {
 		setCredits,
 		pause,
 		setPause,
+		brokerId,
 	};
 }

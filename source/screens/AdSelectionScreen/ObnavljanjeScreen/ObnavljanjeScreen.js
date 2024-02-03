@@ -1,8 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text} from 'ink';
-import {renewAd} from '../../../scraper/renew-ad';
+import {renewAd} from '../../../scraper/renew-ad.js';
+import {decreaseCredit} from '../../../utils.js';
 
-export default function ObnavljanjeScreen({ads, email, password, pause}) {
+export default function ObnavljanjeScreen({
+	ads,
+	email,
+	password,
+	pause,
+	setCredits,
+}) {
 	const [currentAdIndex, setCurrentAdIndex] = useState(0);
 	const [statusMessage, setStatusMessage] = useState(
 		'Pripravljam se na obnavljanje oglasov...',
@@ -16,13 +23,14 @@ export default function ObnavljanjeScreen({ads, email, password, pause}) {
 					`Obnavljam oglas ${currentAdIndex + 1}/${ads.length}... `,
 				);
 
+				// BUG dvakrat se klice
+
 				try {
-					await renewAd(
-						ads[currentAdIndex].id,
-						email, // Use the email passed as a prop
-						password, // Use the password passed as a prop
-					);
-					console.log(`Finished processing ad: ${ads[currentAdIndex].name}`);
+					//await renewAd(ads[currentAdIndex].adId, email, password);
+					await decreaseCredit(email);
+					setCredits(prevstate => {
+						return prevstate - 1;
+					});
 					// Start the countdown for the pause
 					setCountdown(pause * 60); // Convert minutes to seconds for the countdown
 				} catch (error) {
