@@ -9,11 +9,13 @@ import UserInfoHeader from './components/userinfoheader.js';
 import MainMenu from './components/mainmenu.js';
 import LoadingSpinner from './components/loader.js';
 import AdSelectionScreen from './screens/AdSelectionScreen/AdSelectionScreen.js';
+import ObnavljanjeScreen from './screens/AdSelectionScreen/ObnavljanjeScreen/ObnavljanjeScreen.js';
 
 const Screen = {
 	MAIN_MENU: 'mainMenu',
 	CHANGING_EMAIL: 'adSelection',
 	CUSTOMER_SUPPORT: 'customerSupport',
+	ObnavljanjeScreen: 'obnavljanjeScreen',
 };
 
 export default function App({initialConfig}) {
@@ -100,6 +102,11 @@ export default function App({initialConfig}) {
 
 	useInput((input, key) => {
 		if (currentScreen === Screen.AD_SELECTION) {
+			// check if key is enter
+			if (key.return) {
+				console.log('Enter pressed');
+				setCurrentScreen(Screen.ObnavljanjeScreen);
+			}
 			if (key.upArrow) {
 				setHighlightedAdIndex(prevIndex => Math.max(prevIndex - 1, 0));
 			} else if (key.downArrow) {
@@ -110,10 +117,7 @@ export default function App({initialConfig}) {
 				console.log('Space pressed');
 				toggleAdSelection(highlightedAdIndex);
 			} else if (input === 'a') {
-				// Checking if the input is 'a'
 				setActiveAds(ads => ads.map(ad => ({...ad, isSelected: true})));
-			} else if (key.return) {
-				setCurrentScreen(Screen.MAIN_MENU); // Exit the ad selection screen
 			}
 			return;
 		} // Prevent further input handling in this screen
@@ -184,6 +188,16 @@ export default function App({initialConfig}) {
 
 	let screenComponent = null;
 	switch (currentScreen) {
+		case Screen.ObnavljanjeScreen:
+			screenComponent = (
+				<ObnavljanjeScreen
+					ads={activeAds.filter(ad => ad.isSelected)}
+					email={email}
+					password={password}
+					pause={pause}
+				/>
+			);
+			break;
 		case Screen.MAIN_MENU:
 			screenComponent = (
 				<MainMenu

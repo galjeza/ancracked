@@ -5,7 +5,7 @@ import chalk from 'chalk';
 
 export default function UserInfoHeader({email, password, credits, pause}) {
 	return (
-		<Box flexDirection="column" borderColor="green" borderStyle="single">
+		<Box flexDirection="column">
 			<Text>Email: {chalk.blue(email)}</Text>
 			<Text>Geslo: {chalk.red(password)}</Text>
 			<Text>Krediti: {chalk.yellow(credits.toString())}</Text>

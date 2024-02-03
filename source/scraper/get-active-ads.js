@@ -67,7 +67,6 @@ export async function fetchActiveAds(brokerId) {
 					scrapePage = false;
 					break;
 				}
-				console.log('Going to next page');
 				const nextPageUrl = await page.evaluate(
 					el => el.querySelector('a').href,
 					nextPageButton,
